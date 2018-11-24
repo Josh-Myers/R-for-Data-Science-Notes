@@ -1,0 +1,89 @@
+---
+title: "R for Data Science Notes"
+output: html_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(nycflights13)
+```
+
+# Chapter 3 - Data visualisation
+Stat summary looks useful
+
+```{r }
+ggplot(data = diamonds) + 
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.ymin = min,
+    fun.ymax = max,
+    fun.y = median
+  )
+```
+
+And geom_smooth
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth()
+```
+
+# Chapter 5 - Data transformation
+Use is.na() for NA - I sometimes forget to do this
+```{r}
+df <- tibble(x = c(1, NA, 3))
+filter(df, x > 1)
+filter(df, is.na(x) | x > 1)
+```
+
+starts_with("abc"): matches names that begin with “abc”.
+
+ends_with("xyz"): matches names that end with “xyz”.
+
+contains("ijk"): matches names that contain “ijk”.
+
+matches("(.)\\1"): selects variables that match a regular expression. This one matches any variables that contain repeated characters. You’ll learn more about regular expressions in strings.
+
+num_range("x", 1:3): matches x1, x2 and x3
+rename(flights, tail_num = tailnum)
+
+Use arrange to order rows - I will use this in future rather than base version
+
+```{r flights}
+arrange(flights, year, month, day)
+```
+
+Use desc() to re-order by a column in descending order
+NA are at the end
+
+```{r}
+df <- tibble(x = c(5, 2, NA))
+arrange(df, x)
+arrange(df, desc(x))
+```
+
+group_by works nicely with summarise
+
+```{r}
+delays <- flights %>% 
+  group_by(dest) %>% 
+  summarise(
+    count = n(),
+    dist = mean(distance, na.rm = TRUE),
+    delay = mean(arr_delay, na.rm = TRUE)
+  ) %>% 
+  filter(count > 20, dest != "HNL")
+```
+
+Fortunately, all aggregation functions have an na.rm argument which removes the missing values prior to computation
+NAs are contagious
+
+```{r}
+flights %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay, na.rm = TRUE))
+```
+
+
